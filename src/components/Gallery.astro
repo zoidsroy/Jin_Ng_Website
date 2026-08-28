@@ -1,0 +1,264 @@
+---
+import { Image } from 'astro:assets';
+import { useTranslations } from '../data/ui';
+import type { Lang } from '../lib/i18n';
+import { IMAGE_QUALITY, widthsUpTo } from '../lib/images';
+
+interface Props {
+  images: ImageMetadata[];
+  /** Used to build per-image alt text: "Boulder — 2 of 6". */
+  title: string;
+  lang: Lang;
+}
+
+const { images, title, lang } = Astro.props;
+const ui = useTranslations(lang);
+
+/**
+ * The largest candidate in each thumbnail's srcset is the source's own width,
+ * which the lightbox picks off at click time. `widthsUpTo` stops Astro
+ * upscaling — every still here is 800px or smaller, and asking for more just
+ * degrades it twice. Generating the large variant separately with `getImage()`
+ * also made Astro emit every untouched source file into the bundle.
+ */
+const WIDTHS = [480, 900, 1600];
+---
+
+{
+  images.length > 0 && (
+    <section class="gallery" aria-label={ui('work.gallery')}>
+      <ul class="gallery__grid" data-gallery>
+        {images.map((image, index) => (
+          <li class="gallery__item">
+            <button
+              type="button"
+              class="gallery__button"
+              data-index={index}
+              aria-label={`${title} — ${index + 1} / ${images.length}`}
+            >
+              <Image
+                src={image}
+                alt={`${title} — ${index + 1} / ${images.length}`}
+                widths={widthsUpTo(image, WIDTHS)}
+                sizes="(min-width: 900px) 45vw, 92vw"
+                quality={IMAGE_QUALITY}
+                loading="lazy"
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <dialog class="lightbox" data-lightbox>
+        <button class="lightbox__close" type="button" data-close>
+          <span class="visually-hidden">{ui('lightbox.close')}</span>
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <path
+              d="M5 5l14 14M19 5L5 19"
+              stroke="currentColor"
+              stroke-width="1.5"
+              fill="none"
+            />
+          </svg>
+        </button>
+
+        <button class="lightbox__nav lightbox__nav--prev" type="button" data-prev>
+          <span class="visually-hidden">{ui('lightbox.prev')}</span>
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M15 4l-8 8 8 8" stroke="currentColor" stroke-width="1.5" fill="none" />
+          </svg>
+        </button>
+
+        <img class="lightbox__img" alt="" />
+
+        <button class="lightbox__nav lightbox__nav--next" type="button" data-next>
+          <span class="visually-hidden">{ui('lightbox.next')}</span>
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M9 4l8 8-8 8" stroke="currentColor" stroke-width="1.5" fill="none" />
+          </svg>
+        </button>
+
+        <p class="lightbox__counter label" data-counter />
+      </dialog>
+    </section>
+  )
+}
+
+<style>
+  .gallery__grid {
+    display: grid;
+    /* Two-up on a desktop: performance stills need the size to read. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  }
+
+  .gallery__button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    cursor: zoom-in;
+  }
+
+  .gallery__button :global(img) {
+    width: 100%;
+    height: auto;
+    transition: transform 0.6s var(--ease), opacity 0.3s var(--ease);
+  }
+
+  .gallery__button:hover :global(img) {
+    transform: scale(1.03);
+    opacity: 0.9;
+  }
+
+  /* --- lightbox --------------------------------------------------------- */
+
+  .lightbox {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
+    border: 0;
+    background: rgb(4 5 6 / 0.97);
+    color: var(--fg);
+  }
+
+  .lightbox::backdrop {
+    background: rgb(4 5 6 / 0.9);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: clamp(1rem, 4vw, 3rem);
+  }
+
+  .lightbox__img {
+    grid-column: 2;
+    justify-self: center;
+    max-width: 100%;
+    max-height: 88dvh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .lightbox__close {
+    position: absolute;
+    top: clamp(0.75rem, 2vw, 1.5rem);
+    right: clamp(0.75rem, 2vw, 1.5rem);
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    color: var(--fg-dim);
+    transition: color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+
+  .lightbox__nav {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    color: var(--fg-dim);
+    transition: color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+
+  .lightbox__nav--prev {
+    grid-column: 1;
+  }
+
+  .lightbox__nav--next {
+    grid-column: 3;
+  }
+
+  .lightbox__close:hover,
+  .lightbox__nav:hover {
+    color: var(--fg);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .lightbox__counter {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(0.75rem, 2vw, 1.5rem);
+    transform: translateX(-50%);
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Single-image galleries have nothing to page through. */
+  .lightbox[data-single] .lightbox__nav,
+  .lightbox[data-single] .lightbox__counter {
+    display: none;
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-gallery]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+
+  if (root && dialog) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.gallery__button')];
+    const img = dialog.querySelector<HTMLImageElement>('.lightbox__img');
+    const counter = dialog.querySelector<HTMLElement>('[data-counter]');
+    let current = 0;
+
+    if (buttons.length < 2) dialog.setAttribute('data-single', '');
+
+    /** Largest candidate in a srcset, so the lightbox shows the full-size render. */
+    const largest = (thumb: HTMLImageElement): string => {
+      const candidates = (thumb.srcset || '')
+        .split(',')
+        .map((part) => {
+          const [url, descriptor] = part.trim().split(/\s+/);
+          return { url, width: Number.parseInt(descriptor ?? '0', 10) || 0 };
+        })
+        .filter((candidate) => candidate.url);
+
+      if (candidates.length === 0) return thumb.currentSrc || thumb.src;
+      return candidates.reduce((a, b) => (b.width > a.width ? b : a)).url;
+    };
+
+    const show = (index: number) => {
+      // Wrap around at both ends.
+      current = (index + buttons.length) % buttons.length;
+      const button = buttons[current];
+      const thumb = button?.querySelector('img');
+      if (!img || !button || !thumb) return;
+
+      img.src = largest(thumb);
+      img.alt = button.getAttribute('aria-label') ?? '';
+      if (counter) counter.textContent = `${current + 1} / ${buttons.length}`;
+    };
+
+    for (const [index, button] of buttons.entries()) {
+      button.addEventListener('click', () => {
+        show(index);
+        dialog.showModal();
+      });
+    }
+
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-prev]')?.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-next]')?.addEventListener('click', () => show(current + 1));
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') show(current + 1);
+      if (event.key === 'ArrowLeft') show(current - 1);
+    });
+
+    // Click the backdrop (anywhere that isn't the image or a control) to close.
+    dialog.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      if (target === dialog) dialog.close();
+    });
+  }
+</script>

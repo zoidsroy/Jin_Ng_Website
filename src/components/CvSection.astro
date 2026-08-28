@@ -1,0 +1,138 @@
+---
+import { cv } from '../data/cv';
+import { useTranslations } from '../data/ui';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = useTranslations(lang);
+---
+
+<section class="section cv" id="cv">
+  <div class="shell">
+    <div class="section__head">
+      <h2 class="section__title">{ui('cv.title')}</h2>
+    </div>
+
+    <div class="cv__sections">
+      {
+        cv.map((section) => {
+          const limit = section.collapseAfter ?? section.entries.length;
+          const overflow = section.entries.length - limit;
+
+          return (
+            <section class="cv__block">
+              <h3 class="label cv__block-title">{ui(section.title)}</h3>
+
+              <ul class="cv__list" data-collapsed={overflow > 0 ? '' : null}>
+                {section.entries.map((entry, index) => (
+                  <li class="cv__row" data-overflow={index >= limit ? '' : null}>
+                    <span class="cv__year">{entry.year}</span>
+                    <span class="cv__text">
+                      {lang === 'zh' ? (entry.zh ?? entry.en) : entry.en}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {overflow > 0 && (
+                <button class="cv__more" type="button" aria-expanded="false">
+                  <span data-more>
+                    {ui('cv.showMore')} ({overflow})
+                  </span>
+                  <span data-less hidden>
+                    {ui('cv.showLess')}
+                  </span>
+                </button>
+              )}
+            </section>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .cv__sections {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .cv__block-title {
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--line-strong);
+    color: var(--fg);
+  }
+
+  .cv__list[data-collapsed] .cv__row[data-overflow] {
+    display: none;
+  }
+
+  .cv__row {
+    display: grid;
+    /* Year column is fixed so every entry aligns down the page. */
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.25rem 1.5rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .cv__year {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.04em;
+    color: var(--fg-faint);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.15em;
+  }
+
+  .cv__text {
+    color: var(--fg-dim);
+    max-width: 78ch;
+  }
+
+  .cv__more {
+    margin-top: 1.1rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    transition: color 0.25s var(--ease);
+  }
+
+  .cv__more:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    .cv__row {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+  }
+</style>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.cv__more')) {
+    const list = button.parentElement?.querySelector<HTMLElement>('.cv__list');
+    if (!list) continue;
+
+    button.addEventListener('click', () => {
+      const collapsed = list.hasAttribute('data-collapsed');
+      list.toggleAttribute('data-collapsed', !collapsed);
+      button.setAttribute('aria-expanded', String(collapsed));
+
+      const more = button.querySelector<HTMLElement>('[data-more]');
+      const less = button.querySelector<HTMLElement>('[data-less]');
+      if (more) more.hidden = collapsed;
+      if (less) less.hidden = !collapsed;
+    });
+  }
+</script>

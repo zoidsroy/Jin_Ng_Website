@@ -1,0 +1,44 @@
+---
+import { useTranslations } from '../data/ui';
+import { localePath, stripLocale, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  /** Override for pages with no counterpart in the other language (e.g. 404). */
+  href?: string;
+}
+
+const { lang, href: hrefOverride } = Astro.props;
+const ui = useTranslations(lang);
+
+const other: Lang = lang === 'en' ? 'zh' : 'en';
+// Stay on the same page when switching languages.
+const href = hrefOverride ?? localePath(stripLocale(Astro.url.pathname), other);
+---
+
+<a class="lang-switch" href={href} hreflang={other} aria-label={ui('lang.switchLabel')}>
+  {ui('lang.switch')}
+</a>
+
+<style>
+  .lang-switch {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    color: var(--fg-dim);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    line-height: 1;
+    transition:
+      color 0.25s var(--ease),
+      border-color 0.25s var(--ease),
+      background 0.25s var(--ease);
+  }
+
+  .lang-switch:hover {
+    color: var(--fg);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+</style>

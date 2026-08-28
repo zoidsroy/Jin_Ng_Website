@@ -1,0 +1,108 @@
+---
+/**
+ * Full-bleed ambient video behind the hero.
+ *
+ * The poster paints immediately and is all most visitors ever need — the
+ * video file is only attached by script, and only when the visitor's device,
+ * connection and motion preference all say it is welcome. Nothing here blocks
+ * first paint, and on a phone or a metered connection nothing downloads at all.
+ */
+---
+
+<div class="bg-video">
+  <video
+    class="bg-video__el"
+    poster="/video/bg-poster.jpg"
+    preload="none"
+    muted
+    loop
+    playsinline
+    disablepictureinpicture
+    aria-hidden="true"
+    tabindex="-1"
+    data-src-lg="/video/bg-1080.mp4"
+    data-src-sm="/video/bg-720.mp4"></video>
+  <div class="bg-video__scrim"></div>
+</div>
+
+<style>
+  .bg-video {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #000 url('/video/bg-poster.jpg') center / cover no-repeat;
+  }
+
+  .bg-video__el {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Fade in once the first frame is actually decoded. */
+    opacity: 0;
+    transition: opacity 1.2s var(--ease);
+  }
+
+  .bg-video__el.is-playing {
+    opacity: 1;
+  }
+
+  /* Darken enough for AA-contrast text over any frame of the video, and pull
+     the bottom edge into the page background. */
+  .bg-video__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to bottom,
+        rgb(8 9 11 / 0.55) 0%,
+        rgb(8 9 11 / 0.42) 45%,
+        rgb(8 9 11 / 0.88) 88%,
+        var(--bg) 100%
+      ),
+      radial-gradient(120% 80% at 70% 30%, transparent 40%, rgb(8 9 11 / 0.5) 100%);
+  }
+</style>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>('.bg-video__el');
+
+  if (video) {
+    type NetworkInfo = { saveData?: boolean; effectiveType?: string };
+    const connection = (navigator as Navigator & { connection?: NetworkInfo }).connection;
+
+    const unwanted =
+      matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      // Coarse pointer + narrow screen: a phone, where the poster is plenty.
+      matchMedia('(max-width: 720px)').matches ||
+      connection?.saveData === true ||
+      ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
+
+    if (!unwanted) {
+      const src = matchMedia('(min-width: 1280px)').matches
+        ? video.dataset.srcLg
+        : video.dataset.srcSm;
+
+      if (src) {
+        // Wait for the page to settle so the video never competes with the
+        // content above it for bandwidth.
+        const start = () => {
+          video.src = src;
+          video.addEventListener(
+            'playing',
+            () => video.classList.add('is-playing'),
+            { once: true },
+          );
+          video.play().catch(() => {
+            /* Autoplay refused — the poster stays, which is a fine outcome. */
+          });
+        };
+
+        if (document.readyState === 'complete') {
+          requestIdleCallback?.(start, { timeout: 2000 }) ?? setTimeout(start, 400);
+        } else {
+          window.addEventListener('load', () => setTimeout(start, 300), { once: true });
+        }
+      }
+    }
+  }
+</script>

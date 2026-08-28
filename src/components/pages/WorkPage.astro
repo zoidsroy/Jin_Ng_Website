@@ -1,0 +1,300 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+import Base from '../../layouts/Base.astro';
+import Gallery from '../Gallery.astro';
+
+import { useTranslations } from '../../data/ui';
+import { profile } from '../../data/site';
+import { isTranslated, localePath, t, type Lang } from '../../lib/i18n';
+import { inlineFormat, paragraphs } from '../../lib/text';
+import { IMAGE_QUALITY, widthsUpTo } from '../../lib/images';
+
+interface Props {
+  work: CollectionEntry<'works'>;
+  prev: CollectionEntry<'works'> | null;
+  next: CollectionEntry<'works'> | null;
+  lang: Lang;
+}
+
+const { work, prev, next, lang } = Astro.props;
+const ui = useTranslations(lang);
+
+const { title, category, credit, year, cover, gallery, link, linkLabel, description } =
+  work.data;
+
+const heading = t(title, lang);
+const body = paragraphs(t(description, lang));
+const showFallbackNotice = !isTranslated(description, lang);
+
+// The cover already leads the page, so drop it from the gallery rather than
+// showing the same frame twice — several works list it as their only still.
+const images = gallery.filter((image) => image.src !== cover.src);
+
+const meta = [
+  { key: ui('work.year'), value: year },
+  { key: ui('work.role'), value: t(category, lang) },
+  ...(credit ? [{ key: ui('work.credit'), value: t(credit, lang) }] : []),
+];
+
+// A purpose-built share card. Pointing `og:image` at `cover.src` instead would
+// make Astro emit every untouched original into the bundle — ~30MB of source
+// PNGs that no visitor ever downloads.
+// Sized to the source rather than the nominal 1200x630 — upscaling here would
+// only hand the social platforms a softer image to downscale again.
+const og = await getImage({
+  src: cover,
+  width: Math.min(cover.width, 1200),
+  height: Math.round(Math.min(cover.width, 1200) / 1.91),
+  fit: 'cover',
+  format: 'jpeg',
+  quality: 82,
+});
+---
+
+<Base
+  lang={lang}
+  title={`${heading} — ${t(profile.name, lang)}`}
+  description={body[0]?.slice(0, 180) ?? t(category, lang)}
+  ogImage={og.src}
+>
+  <article class="work">
+    <div class="shell">
+      <a class="work__back link" href={`${localePath('/', lang)}#works`}>
+        ← {ui('work.back')}
+      </a>
+
+      <header class="work__header">
+        <h1 class="work__title">{heading}</h1>
+      </header>
+    </div>
+
+    <div class="shell">
+      <figure class="work__hero">
+        <Image
+          src={cover}
+          alt={heading}
+          widths={widthsUpTo(cover, [480, 800])}
+          sizes="(min-width: 960px) 50rem, 92vw"
+          quality={IMAGE_QUALITY}
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </div>
+
+    <div class="shell work__layout">
+      <aside class="work__meta">
+        <dl>
+          {
+            meta.map((item) => (
+              <div class="work__meta-row">
+                <dt class="label">{item.key}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          link && (
+            <a class="work__cta" href={link} target="_blank" rel="noopener noreferrer">
+              {linkLabel ? t(linkLabel, lang) : ui('work.watch')}
+              <span aria-hidden="true">↗</span>
+            </a>
+          )
+        }
+      </aside>
+
+      <div class="work__body">
+        {showFallbackNotice && <p class="work__notice">{ui('work.untranslated')}</p>}
+        <div class="prose work__prose">
+          {body.map((paragraph) => <p set:html={inlineFormat(paragraph)} />)}
+        </div>
+      </div>
+    </div>
+
+    {
+      images.length > 0 && (
+        <div class="shell work__gallery">
+          <Gallery images={images} title={heading} lang={lang} />
+        </div>
+      )
+    }
+
+    <nav class="shell work__pager" aria-label={ui('nav.works')}>
+      {
+        prev ? (
+          <a class="work__pager-link" href={localePath(`/works/${prev.id}`, lang)}>
+            <span class="label">← {ui('work.prev')}</span>
+            <span class="work__pager-title">{t(prev.data.title, lang)}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a class="work__pager-link work__pager-link--next" href={localePath(`/works/${next.id}`, lang)}>
+            <span class="label">{ui('work.next')} →</span>
+            <span class="work__pager-title">{t(next.data.title, lang)}</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .work {
+    /* Clear the fixed header. */
+    padding-top: 7rem;
+  }
+
+  .work__back {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+  }
+
+  .work__header {
+    margin-block: 1.5rem clamp(2rem, 4vw, 3rem);
+  }
+
+  .work__title {
+    font-size: var(--step-3);
+    max-width: 20ch;
+  }
+
+  /* Contained, not full-bleed. The sources are 800px wide; stretching one
+     across a desktop viewport upscales it ~2x and the softness is obvious.
+     50rem is the source's own width, so this renders 1:1 — sharp beats big.
+     Raise this the day the stills are re-exported larger. */
+  .work__hero {
+    margin: 0 0 clamp(2.5rem, 5vw, 4.5rem);
+    max-width: 50rem;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+  }
+
+  .work__hero :global(img) {
+    width: 100%;
+    height: auto;
+    /* No crop — show the frame the artist chose. */
+    object-fit: contain;
+  }
+
+  .work__layout {
+    display: grid;
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+    margin-bottom: clamp(3rem, 6vw, 5.5rem);
+  }
+
+  .work__meta dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .work__meta-row {
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .work__meta-row:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .work__meta dd {
+    margin: 0.35rem 0 0;
+    color: var(--fg);
+  }
+
+  .work__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    padding: 0.7rem 1.35rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
+    transition:
+      border-color 0.25s var(--ease),
+      background 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+
+  .work__cta:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .work__notice {
+    margin-bottom: 1.5rem;
+    padding: 0.7rem 1rem;
+    border-left: 2px solid var(--accent);
+    background: var(--accent-dim);
+    font-size: var(--step--1);
+    color: var(--fg-dim);
+  }
+
+  .work__prose {
+    font-size: var(--step-0);
+    line-height: 1.75;
+    max-width: 64ch;
+  }
+
+  .work__gallery {
+    margin-bottom: clamp(3rem, 6vw, 5.5rem);
+  }
+
+  .work__pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--line);
+    padding-bottom: clamp(3rem, 6vw, 5rem);
+  }
+
+  .work__pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: color 0.25s var(--ease);
+  }
+
+  .work__pager-link--next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .work__pager-link:hover {
+    color: var(--accent);
+  }
+
+  .work__pager-title {
+    font-size: var(--step-1);
+    font-weight: var(--weight-heading);
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 900px) {
+    .work__layout {
+      grid-template-columns: 18rem 1fr;
+    }
+
+    .work__meta {
+      position: sticky;
+      top: 6.5rem;
+    }
+  }
+</style>

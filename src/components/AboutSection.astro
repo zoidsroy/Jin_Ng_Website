@@ -1,0 +1,89 @@
+---
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait.jpg';
+import { profile } from '../data/site';
+import { useTranslations } from '../data/ui';
+import { t, type Lang } from '../lib/i18n';
+import { IMAGE_QUALITY, widthsUpTo } from '../lib/images';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = useTranslations(lang);
+
+const paragraphs = t(profile.bio, lang).split(/\n{2,}/);
+---
+
+<section class="section about" id="about">
+  <div class="shell about__grid">
+    <div class="about__aside">
+      <h2 class="label about__eyebrow">{ui('about.title')}</h2>
+      <Image
+        class="about__portrait"
+        src={portrait}
+        alt={t(profile.name, lang)}
+        widths={widthsUpTo(portrait, [320, 560])}
+        sizes="(min-width: 900px) 22rem, 60vw"
+        quality={IMAGE_QUALITY}
+        loading="lazy"
+      />
+    </div>
+
+    <div class="about__body">
+      <p class="about__lede">{t(profile.tagline, lang)}</p>
+      <div class="prose about__prose">
+        {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .about__eyebrow {
+    display: block;
+    margin-bottom: 1.25rem;
+    color: var(--fg);
+  }
+
+  .about__portrait {
+    width: 100%;
+    max-width: 22rem;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    filter: grayscale(1) contrast(1.05);
+    transition: filter 0.6s var(--ease);
+  }
+
+  .about__portrait:hover {
+    filter: grayscale(0) contrast(1);
+  }
+
+  .about__lede {
+    font-size: var(--step-2);
+    font-weight: var(--weight-display);
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+    color: var(--fg);
+    margin-bottom: 1.75rem;
+    max-width: 26ch;
+  }
+
+  .about__prose {
+    max-width: 66ch;
+  }
+
+  @media (min-width: 900px) {
+    .about__grid {
+      grid-template-columns: 22rem 1fr;
+    }
+  }
+</style>

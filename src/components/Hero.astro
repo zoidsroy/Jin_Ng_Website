@@ -1,0 +1,133 @@
+---
+import BackgroundVideo from './BackgroundVideo.astro';
+import SocialLinks from './SocialLinks.astro';
+import { profile } from '../data/site';
+import { useTranslations } from '../data/ui';
+import { localePath, t, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = useTranslations(lang);
+
+const roles = t(profile.tagline, lang).split('·').map((role) => role.trim());
+const worksHref = `${localePath('/', lang) === '/' ? '' : localePath('/', lang)}/#works`;
+---
+
+<section class="hero">
+  <BackgroundVideo />
+
+  <div class="hero__content shell">
+    <h1 class="hero__name">{t(profile.name, lang)}</h1>
+
+    <ul class="hero__roles">
+      {roles.map((role) => <li>{role}</li>)}
+    </ul>
+
+    <SocialLinks size="lg" class="hero__socials" />
+  </div>
+
+  <a class="hero__scroll" href={worksHref}>
+    <span class="label">{ui('hero.scroll')}</span>
+    <span class="hero__scroll-line" aria-hidden="true"></span>
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    /* svh keeps mobile browser chrome from cropping the composition. */
+    min-height: 100svh;
+    display: flex;
+    align-items: flex-end;
+    padding-block: 8rem 5rem;
+    isolation: isolate;
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .hero__name {
+    font-size: var(--step-4);
+    font-weight: var(--weight-display);
+    letter-spacing: -0.025em;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero__roles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1.1rem;
+    margin-bottom: 2.25rem;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+
+  /* Hairline separator between roles instead of punctuation. */
+  .hero__roles li + li::before {
+    content: '';
+    display: inline-block;
+    width: 1.75rem;
+    height: 1px;
+    margin-right: 1.1rem;
+    vertical-align: middle;
+    background: var(--line-strong);
+  }
+
+  .hero__socials {
+    max-width: 30rem;
+  }
+
+  .hero__scroll {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 5rem;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    gap: 0.9rem;
+    transition: color 0.25s var(--ease);
+  }
+
+  .hero__scroll:hover {
+    color: var(--accent);
+  }
+
+  .hero__scroll-line {
+    display: block;
+    width: 3.5rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+    transform-origin: right;
+    animation: scroll-cue 2.4s var(--ease) infinite;
+  }
+
+  @keyframes scroll-cue {
+    0%,
+    100% {
+      transform: scaleX(0.55);
+      opacity: 0.35;
+    }
+    50% {
+      transform: scaleX(1);
+      opacity: 0.9;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .hero__scroll {
+      display: flex;
+    }
+  }
+</style>

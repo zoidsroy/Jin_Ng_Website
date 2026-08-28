@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets';
+import { socials } from '../data/site';
+
+interface Props {
+  /** Visual weight — the hero uses `lg`, the contact block `md`. */
+  size?: 'md' | 'lg';
+  class?: string;
+}
+
+const { size = 'md', class: className } = Astro.props;
+---
+
+<ul class:list={['socials', `socials--${size}`, className]}>
+  {
+    socials.map((social) => (
+      <li>
+        <a
+          href={social.href}
+          class="socials__link"
+          target={social.href.startsWith('mailto:') ? undefined : '_blank'}
+          rel="noopener noreferrer me"
+        >
+          <Image
+            src={social.icon}
+            alt=""
+            width={22}
+            height={22}
+            densities={[1, 2]}
+            loading="lazy"
+          />
+          <span class="visually-hidden">{social.name}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .socials__link {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    transition:
+      border-color 0.25s var(--ease),
+      background 0.25s var(--ease),
+      transform 0.25s var(--ease);
+  }
+
+  .socials--lg .socials__link {
+    width: 2.85rem;
+    height: 2.85rem;
+  }
+
+  .socials__link :global(img) {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    opacity: 0.62;
+    transition: opacity 0.25s var(--ease);
+  }
+
+  .socials__link:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    transform: translateY(-2px);
+  }
+
+  .socials__link:hover :global(img) {
+    opacity: 1;
+  }
+</style>

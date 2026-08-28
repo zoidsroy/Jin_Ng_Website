@@ -1,0 +1,10 @@
+---
+import WorkPage from '../../components/pages/WorkPage.astro';
+import { getWorkPaths } from '../../lib/works';
+
+export const getStaticPaths = getWorkPaths;
+
+const { work, prev, next } = Astro.props;
+---
+
+<WorkPage work={work} prev={prev} next={next} lang="en" />

@@ -1,0 +1,60 @@
+---
+import SocialLinks from './SocialLinks.astro';
+import { site } from '../data/site';
+import { useTranslations } from '../data/ui';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = useTranslations(lang);
+---
+
+<section class="section contact" id="contact">
+  <div class="shell">
+    <div class="section__head">
+      <h2 class="section__title">{ui('contact.title')}</h2>
+    </div>
+
+    <div class="contact__grid">
+      <div>
+        <h3 class="label contact__key">{ui('contact.email')}</h3>
+        <a class="contact__email link" href={`mailto:${site.email}`}>{site.email}</a>
+      </div>
+
+      <div>
+        <h3 class="label contact__key">{ui('contact.elsewhere')}</h3>
+        <SocialLinks />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact__grid {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: start;
+  }
+
+  .contact__key {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--fg);
+  }
+
+  .contact__email {
+    font-size: var(--step-2);
+    font-weight: var(--weight-display);
+    letter-spacing: -0.015em;
+    word-break: break-word;
+  }
+
+  @media (min-width: 760px) {
+    .contact__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
