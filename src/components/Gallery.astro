@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { useTranslations } from '../data/ui';
 import type { Lang } from '../lib/i18n';
+import { IMAGE_QUALITY, widthsUpTo } from '../lib/images';
 
 interface Props {
   images: ImageMetadata[];
@@ -14,10 +15,11 @@ const { images, title, lang } = Astro.props;
 const ui = useTranslations(lang);
 
 /**
- * Each thumbnail carries a 1600px candidate in its srcset that the browser
- * never downloads at thumbnail `sizes` — the lightbox picks it off the srcset
- * at click time. Generating those separately with `getImage()` also made Astro
- * emit every untouched source file into the bundle.
+ * The largest candidate in each thumbnail's srcset is the source's own width,
+ * which the lightbox picks off at click time. `widthsUpTo` stops Astro
+ * upscaling — every still here is 800px or smaller, and asking for more just
+ * degrades it twice. Generating the large variant separately with `getImage()`
+ * also made Astro emit every untouched source file into the bundle.
  */
 const WIDTHS = [480, 900, 1600];
 ---
@@ -37,8 +39,9 @@ const WIDTHS = [480, 900, 1600];
               <Image
                 src={image}
                 alt={`${title} — ${index + 1} / ${images.length}`}
-                widths={[...WIDTHS.filter((width) => width < image.width), image.width]}
+                widths={widthsUpTo(image, WIDTHS)}
                 sizes="(min-width: 900px) 45vw, 92vw"
+                quality={IMAGE_QUALITY}
                 loading="lazy"
               />
             </button>

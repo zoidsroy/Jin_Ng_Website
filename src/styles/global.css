@@ -21,13 +21,23 @@
   --font-cjk: 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', 'Hiragino Sans TC', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, monospace;
 
-  /* Fluid display sizes — clamp(min, preferred, max) */
-  --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
-  --step-0: clamp(0.95rem, 0.9rem + 0.22vw, 1.06rem);
-  --step-1: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
-  --step-2: clamp(1.5rem, 1.25rem + 1.1vw, 2.1rem);
-  --step-3: clamp(2rem, 1.5rem + 2.2vw, 3.2rem);
-  --step-4: clamp(2.8rem, 1.6rem + 5.5vw, 7rem);
+  /* Fluid display sizes — clamp(min, preferred, max).
+     Kept deliberately restrained: the work images carry the page, and type
+     that competes with them for attention makes the grid read as busy. */
+  /* Body text barely scales — it has a comfortable size and a phone is not
+     the place to shave pixels off it, least of all for Chinese. */
+  --step--1: clamp(0.72rem, 0.7rem + 0.1vw, 0.78rem);
+  --step-0: clamp(0.92rem, 0.89rem + 0.14vw, 0.96rem);
+  --step-1: clamp(0.98rem, 0.94rem + 0.22vw, 1.1rem);
+  --step-2: clamp(1.15rem, 1.02rem + 0.55vw, 1.5rem);
+  --step-3: clamp(1.4rem, 1.15rem + 1vw, 2rem);
+  --step-4: clamp(2.1rem, 1.4rem + 3vw, 4.2rem);
+
+  /* Weights. Light display type is what reads as "fine" — shrinking a bold
+     face just makes it look cramped. */
+  --weight-display: 300;
+  --weight-heading: 400;
+  --weight-strong: 500;
 
   /* --- layout ------------------------------------------------------------ */
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
@@ -74,9 +84,10 @@ h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 620;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+  font-weight: var(--weight-heading);
+  /* Lighter strokes need less negative tracking or the letters collide. */
+  letter-spacing: -0.02em;
+  line-height: 1.14;
   text-wrap: balance;
 }
 
@@ -180,7 +191,7 @@ button {
 
 .prose strong {
   color: var(--fg);
-  font-weight: 600;
+  font-weight: var(--weight-strong);
 }
 
 /* Underline that draws in from the left on hover. */

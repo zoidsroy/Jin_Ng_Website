@@ -98,8 +98,9 @@ const links = [
   }
 
   .site-header__brand {
-    font-weight: 600;
-    letter-spacing: -0.03em;
+    /* One step up from the nav links: small type still needs some weight. */
+    font-weight: var(--weight-strong);
+    letter-spacing: -0.01em;
     font-size: var(--step-1);
     transition: color 0.25s var(--ease);
   }
@@ -213,8 +214,8 @@ const links = [
 
     .site-menu__list a {
       font-size: var(--step-2);
-      font-weight: 600;
-      letter-spacing: -0.03em;
+      font-weight: var(--weight-heading);
+      letter-spacing: -0.015em;
     }
   }
 </style>

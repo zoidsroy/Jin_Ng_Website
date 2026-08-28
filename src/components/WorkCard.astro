@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { localePath, t, type Lang } from '../lib/i18n';
+import { IMAGE_QUALITY, widthsUpTo } from '../lib/images';
 
 interface Props {
   work: CollectionEntry<'works'>;
@@ -22,8 +23,9 @@ const href = localePath(`/works/${work.id}`, lang);
       <Image
         src={cover}
         alt={t(title, lang)}
-        widths={[400, 700, 1000]}
+        widths={widthsUpTo(cover, [400, 700])}
         sizes="(min-width: 1200px) 30vw, (min-width: 760px) 45vw, 92vw"
+        quality={IMAGE_QUALITY}
         loading={eager ? 'eager' : 'lazy'}
         fetchpriority={eager ? 'high' : 'auto'}
       />
@@ -83,7 +85,7 @@ const href = localePath(`/works/${work.id}`, lang);
 
   .card__title {
     font-size: var(--step-1);
-    font-weight: 600;
+    font-weight: var(--weight-heading);
     transition: color 0.25s var(--ease);
   }
 

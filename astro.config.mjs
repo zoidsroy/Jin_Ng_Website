@@ -60,7 +60,6 @@ export default defineConfig({
   ],
 
   image: {
-    // Gallery stills are large; cap the work Astro asks sharp to do.
     responsiveStyles: true,
   },
 
