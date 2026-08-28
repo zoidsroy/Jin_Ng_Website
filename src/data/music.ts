@@ -57,16 +57,18 @@ export const music: MusicEmbed[] = [
       '&show_user=true&show_reposts=false&show_teaser=false&visual=false',
     height: 340,
   },
-  // Bandcamp needs the numeric release id from its own embed code — there is no
-  // way to build this from a profile URL. See the note above, then uncomment:
-  //
-  // {
-  //   platform: 'bandcamp',
-  //   title: { en: 'Album Title', zh: '專輯名稱' },
-  //   href: 'https://goutystone.bandcamp.com/album/album-title',
-  //   embed:
-  //     'https://bandcamp.com/EmbeddedPlayer/album=1234567890/size=large/' +
-  //     'bgcol=333333/linkcol=ff4b35/artwork=small/transparent=true/',
-  //   height: 472,
-  // },
+  {
+    platform: 'bandcamp',
+    title: {
+      en: 'Meditation Moment',
+      zh: 'Meditation Moment',
+    },
+    href: 'https://goutystone.bandcamp.com/track/meditation-moment',
+    // `track=2938505003` is the id from Bandcamp's own embed code for this
+    // release; 120px is the height Bandcamp reports for this player size.
+    embed:
+      'https://bandcamp.com/EmbeddedPlayer/track=2938505003/size=large/' +
+      'bgcol=333333/linkcol=ff4b35/artwork=small/tracklist=false/transparent=true/',
+    height: 120,
+  },
 ];

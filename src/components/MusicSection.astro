@@ -76,6 +76,10 @@ const ui = useTranslations(lang);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
     gap: clamp(1.25rem, 2.5vw, 2rem);
+    /* Each platform's player has its own natural height — a Bandcamp single is
+       120px against Spotify's 352. Let them keep it rather than stretching the
+       short one into a mostly-empty box. */
+    align-items: start;
   }
 
   .player {
