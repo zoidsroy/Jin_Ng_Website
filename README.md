@@ -12,6 +12,7 @@ Jin Ng 的個人網站 — 以 [Astro](https://astro.build) 建置的雙語靜�
 | ---------------- | --------------------------------- |
 | 新增／修改一件作品 | `src/content/works/<名稱>.md`     |
 | 新增一筆 CV 條目   | `src/data/cv.ts`                  |
+| 新增試聽播放器     | `src/data/music.ts`               |
 | 改自我介紹、社群連結 | `src/data/site.ts`                |
 | 改介面文字（按鈕、標題） | `src/data/ui.ts`             |
 | 改配色、字級、間距   | `src/styles/global.css`（最上方的 `:root`）|
@@ -77,6 +78,28 @@ description:
 ```
 
 `collapseAfter: 8` 表示該區塊預設只顯示 8 筆，其餘收在「顯示全部」後面。
+
+---
+
+## 新增試聽播放器
+
+打開 `src/data/music.ts`，在陣列裡加一筆。每個平台的 `embed` 網址取得方式：
+
+**Spotify** — 打開專輯／單曲／藝人頁 → 分享 → 複製連結，取出 ID 後組成
+`https://open.spotify.com/embed/<類型>/<ID>?theme=0`
+（`<類型>` 是 `album`、`track` 或 `artist`）。
+
+**SoundCloud** — 任何單曲、播放清單或個人頁網址都可以，放進 `url=` 參數即可。
+
+**Bandcamp** — 唯一不能從網址推導的。打開該張作品 → Share/Embed → 複製嵌入碼，
+從 iframe 的 `src` 裡把 `album=<數字>`（或 `track=<數字>`）挑出來。
+`music.ts` 底部有註解好的範本，取消註解填入即可。
+
+### 為什麼要點一下才播放
+
+這三個播放器每個都是 300KB–1MB 的第三方 iframe，還會載入追蹤 cookie。
+所以網站只先顯示一張輕量卡片，**在訪客按下去之前，不會向這些平台送出任何請求**。
+卡片的高度預先保留成播放器的實際高度，所以載入時版面不會跳動。
 
 ---
 

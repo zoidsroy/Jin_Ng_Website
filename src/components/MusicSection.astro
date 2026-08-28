@@ -1,0 +1,205 @@
+---
+import { music, PLATFORM_LABEL } from '../data/music';
+import { useTranslations } from '../data/ui';
+import { t, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = useTranslations(lang);
+---
+
+{
+  music.length > 0 && (
+    <section class="section music" id="music">
+      <div class="shell">
+        <div class="section__head music__head">
+          <h2 class="section__title">{ui('music.title')}</h2>
+          <p class="music__note">{ui('music.intro')}</p>
+        </div>
+
+        <ul class="music__grid">
+          {music.map((item) => (
+            <li class="player" data-player style={`--player-height: ${item.height}px`}>
+              {/*
+                The iframe src lives in a data attribute, not on an iframe, so
+                nothing is requested from Spotify or SoundCloud — no scripts, no
+                cookies — until the visitor presses this button.
+              */}
+              <button
+                class="player__facade"
+                type="button"
+                data-embed={item.embed}
+                data-title={t(item.title, lang)}
+                data-loading={ui('music.loading')}
+              >
+                <span class="player__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="26" height="26">
+                    <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+                  </svg>
+                </span>
+                <span class="player__text">
+                  <span class="label player__platform">{PLATFORM_LABEL[item.platform]}</span>
+                  <span class="player__title">{t(item.title, lang)}</span>
+                </span>
+                <span class="player__cue label">{ui('music.load')}</span>
+              </button>
+
+              <a class="player__external" href={item.href} target="_blank" rel="noopener noreferrer">
+                {ui('music.openOn')} {PLATFORM_LABEL[item.platform]}
+                <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .music__head {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  .music__note {
+    margin: 0;
+    max-width: 42ch;
+    color: var(--fg-faint);
+    font-size: var(--step--1);
+  }
+
+  .music__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .player {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .player__facade {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    /* Reserve the player's real height so swapping in the iframe doesn't
+       shove the rest of the page down. */
+    min-height: var(--player-height);
+    padding: 1.25rem;
+    text-align: left;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    transition:
+      border-color 0.25s var(--ease),
+      background 0.25s var(--ease);
+  }
+
+  .player__facade:hover {
+    border-color: var(--line-strong);
+    background: rgb(255 255 255 / 0.03);
+  }
+
+  .player__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    color: var(--fg-dim);
+    transition:
+      color 0.25s var(--ease),
+      border-color 0.25s var(--ease),
+      background 0.25s var(--ease);
+  }
+
+  .player__facade:hover .player__icon {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .player__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .player__platform {
+    color: var(--fg-faint);
+  }
+
+  .player__title {
+    color: var(--fg);
+  }
+
+  .player__cue {
+    margin-left: auto;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* Once loaded, the iframe takes the facade's place in the same box. */
+  .player :global(iframe) {
+    display: block;
+    width: 100%;
+    height: var(--player-height);
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+  }
+
+  .player__external {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
+    color: var(--fg-faint);
+    transition: color 0.25s var(--ease);
+  }
+
+  .player__external:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 520px) {
+    .player__cue {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  for (const facade of document.querySelectorAll<HTMLButtonElement>('.player__facade')) {
+    facade.addEventListener(
+      'click',
+      () => {
+        const { embed, title, loading } = facade.dataset;
+        if (!embed) return;
+
+        facade.disabled = true;
+        const cue = facade.querySelector<HTMLElement>('.player__cue');
+        if (cue && loading) cue.textContent = loading;
+
+        const iframe = document.createElement('iframe');
+        iframe.src = embed;
+        iframe.title = title ?? '';
+        iframe.loading = 'lazy';
+        iframe.allow = 'autoplay; clipboard-write; encrypted-media; picture-in-picture';
+        // The embed is third-party; give it no more of the page than it needs.
+        iframe.referrerPolicy = 'no-referrer-when-downgrade';
+        iframe.setAttribute('frameborder', '0');
+
+        facade.replaceWith(iframe);
+      },
+      { once: true },
+    );
+  }
+</script>

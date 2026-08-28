@@ -16,10 +16,12 @@ const { lang, transparent = false, langHref } = Astro.props;
 const ui = useTranslations(lang);
 
 const home = localePath('/', lang);
+const base = home === '/' ? '' : home;
 const links = [
-  { href: `${home === '/' ? '' : home}/#works`, label: ui('nav.works') },
-  { href: `${home === '/' ? '' : home}/#cv`, label: ui('nav.cv') },
-  { href: `${home === '/' ? '' : home}/#contact`, label: ui('nav.contact') },
+  { href: `${base}/#works`, label: ui('nav.works') },
+  { href: `${base}/#music`, label: ui('nav.music') },
+  { href: `${base}/#cv`, label: ui('nav.cv') },
+  { href: `${base}/#contact`, label: ui('nav.contact') },
 ];
 ---
 

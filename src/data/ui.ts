@@ -3,6 +3,7 @@ import type { Lang } from '../lib/i18n';
 /** Every string the chrome renders, in both languages. */
 const strings = {
   'nav.works': { en: 'Works', zh: '作品' },
+  'nav.music': { en: 'Listen', zh: '試聽' },
   'nav.cv': { en: 'CV', zh: '簡歷' },
   'nav.contact': { en: 'Contact', zh: '聯絡' },
   'nav.menu': { en: 'Menu', zh: '選單' },
@@ -41,6 +42,15 @@ const strings = {
   'cv.performance': { en: 'Performance', zh: '表演' },
   'cv.showMore': { en: 'Show all', zh: '顯示全部' },
   'cv.showLess': { en: 'Show less', zh: '收合' },
+
+  'music.title': { en: 'Listen', zh: '試聽' },
+  'music.intro': {
+    en: 'Players load on demand, so nothing is fetched from these services until you ask.',
+    zh: '播放器點擊後才載入，在此之前不會向這些平台發出任何請求。',
+  },
+  'music.load': { en: 'Load player', zh: '載入播放器' },
+  'music.loading': { en: 'Loading…', zh: '載入中…' },
+  'music.openOn': { en: 'Open on', zh: '前往' },
 
   'about.title': { en: 'Biography', zh: '簡介' },
 

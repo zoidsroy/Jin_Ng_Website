@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Hero from '../Hero.astro';
 import WorksSection from '../WorksSection.astro';
+import MusicSection from '../MusicSection.astro';
 import AboutSection from '../AboutSection.astro';
 import CvSection from '../CvSection.astro';
 import ContactSection from '../ContactSection.astro';
@@ -24,6 +25,7 @@ const title = `${t(profile.name, lang)} — ${t(profile.tagline, lang)}`;
 <Base lang={lang} title={title} transparentHeader>
   <Hero lang={lang} />
   <WorksSection works={works} lang={lang} />
+  <MusicSection lang={lang} />
   <AboutSection lang={lang} />
   <CvSection lang={lang} />
   <ContactSection lang={lang} />
