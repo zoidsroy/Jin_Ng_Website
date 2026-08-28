@@ -1,0 +1,264 @@
+﻿---
+import LangSwitch from './LangSwitch.astro';
+import { profile } from '../data/site';
+import { useTranslations } from '../data/ui';
+import { localePath, t, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  /** Start transparent and only paint a background once the page scrolls. */
+  transparent?: boolean;
+  /** Override for pages with no counterpart in the other language (e.g. 404). */
+  langHref?: string;
+}
+
+const { lang, transparent = false, langHref } = Astro.props;
+const ui = useTranslations(lang);
+
+const home = localePath('/', lang);
+const links = [
+  { href: `${home === '/' ? '' : home}/#works`, label: ui('nav.works') },
+  { href: `${home === '/' ? '' : home}/#cv`, label: ui('nav.cv') },
+  { href: `${home === '/' ? '' : home}/#contact`, label: ui('nav.contact') },
+];
+---
+
+<header class="site-header" data-transparent={transparent ? '' : null}>
+  <div class="site-header__inner shell">
+    <a class="site-header__brand" href={home}>{t(profile.name, lang)}</a>
+
+    <nav class="site-header__nav" aria-label={ui('nav.menu')}>
+      <ul class="site-header__list">
+        {
+          links.map((link) => (
+            <li>
+              <a class="link" href={link.href}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <LangSwitch lang={lang} href={langHref} />
+    </nav>
+
+    <button
+      class="site-header__toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-menu"
+    >
+      <span class="visually-hidden">{ui('nav.menu')}</span>
+      <span class="site-header__bars" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <!-- Mobile sheet. Mirrors the nav above rather than sharing a DOM node so
+       neither layout has to fight the other's positioning. -->
+  <div class="site-menu" id="site-menu" hidden>
+    <ul class="site-menu__list">
+      {
+        links.map((link) => (
+          <li>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <LangSwitch lang={lang} href={langHref} />
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 100;
+    background: rgb(8 9 11 / 0.72);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    transition:
+      background 0.4s var(--ease),
+      border-color 0.4s var(--ease);
+  }
+
+  /* Over a hero: invisible chrome until the page has scrolled. */
+  .site-header[data-transparent]:not(.is-stuck) {
+    background: transparent;
+    backdrop-filter: none;
+    border-bottom-color: transparent;
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 4.25rem;
+  }
+
+  .site-header__brand {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-size: var(--step-1);
+    transition: color 0.25s var(--ease);
+  }
+
+  .site-header__brand:hover {
+    color: var(--accent);
+  }
+
+  .site-header__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+  }
+
+  .site-header__list {
+    display: flex;
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+  }
+
+  .site-header__list a {
+    font-size: var(--step-0);
+    color: var(--fg-dim);
+  }
+
+  .site-header__list a:hover {
+    color: var(--accent);
+  }
+
+  .site-header__toggle {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-right: -0.75rem;
+    place-items: center;
+  }
+
+  /* Three bars that collapse into an X when the sheet is open. */
+  .site-header__bars,
+  .site-header__bars::before,
+  .site-header__bars::after {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--fg);
+    transition: transform 0.35s var(--ease), opacity 0.2s linear;
+  }
+
+  .site-header__bars {
+    position: relative;
+  }
+
+  .site-header__bars::before,
+  .site-header__bars::after {
+    content: '';
+    position: absolute;
+    left: 0;
+  }
+
+  .site-header__bars::before {
+    top: -7px;
+  }
+
+  .site-header__bars::after {
+    top: 7px;
+  }
+
+  .site-header__toggle[aria-expanded='true'] .site-header__bars {
+    background: transparent;
+  }
+
+  .site-header__toggle[aria-expanded='true'] .site-header__bars::before {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .site-header__toggle[aria-expanded='true'] .site-header__bars::after {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .site-menu {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .site-header__nav {
+      display: none;
+    }
+
+    .site-header__toggle {
+      display: grid;
+    }
+
+    .site-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem var(--gutter) 3rem;
+      border-top: 1px solid var(--line);
+      background: rgb(8 9 11 / 0.96);
+      backdrop-filter: blur(14px);
+    }
+
+    .site-menu[hidden] {
+      display: none;
+    }
+
+    .site-menu__list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .site-menu__list a {
+      font-size: var(--step-2);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const toggle = document.querySelector<HTMLButtonElement>('.site-header__toggle');
+  const menu = document.querySelector<HTMLElement>('#site-menu');
+
+  // Paint the header background as soon as the hero is no longer under it.
+  if (header?.hasAttribute('data-transparent')) {
+    const sentinel = document.createElement('div');
+    sentinel.style.cssText = 'position:absolute;top:0;height:1px;width:1px;';
+    document.body.prepend(sentinel);
+
+    new IntersectionObserver(
+      ([entry]) => header.classList.toggle('is-stuck', !entry.isIntersecting),
+      { rootMargin: '-64px 0px 0px 0px' },
+    ).observe(sentinel);
+  }
+
+  if (toggle && menu) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.hidden = !open;
+      // Stop the page scrolling behind the open sheet.
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    menu.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    });
+
+    // The sheet only exists below 720px; reset if the viewport grows.
+    matchMedia('(min-width: 721px)').addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+</script>

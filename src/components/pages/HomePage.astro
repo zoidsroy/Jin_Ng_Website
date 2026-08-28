@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../Hero.astro';
+import WorksSection from '../WorksSection.astro';
+import AboutSection from '../AboutSection.astro';
+import CvSection from '../CvSection.astro';
+import ContactSection from '../ContactSection.astro';
+
+import { profile } from '../../data/site';
+import { t, type Lang } from '../../lib/i18n';
+import { getSortedWorks } from '../../lib/works';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const works = await getSortedWorks();
+
+const title = `${t(profile.name, lang)} — ${t(profile.tagline, lang)}`;
+---
+
+<Base lang={lang} title={title} transparentHeader>
+  <Hero lang={lang} />
+  <WorksSection works={works} lang={lang} />
+  <AboutSection lang={lang} />
+  <CvSection lang={lang} />
+  <ContactSection lang={lang} />
+</Base>

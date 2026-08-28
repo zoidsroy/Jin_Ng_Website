@@ -1,0 +1,114 @@
+---
+import '@fontsource-variable/inter';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site, profile } from '../data/site';
+import { useTranslations } from '../data/ui';
+import { HTML_LANG, localePath, stripLocale, t, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description?: string;
+  /** Absolute or root-relative URL of the social preview image. */
+  ogImage?: string;
+  /** Hero pages own the full viewport; the nav starts transparent over them. */
+  transparentHeader?: boolean;
+  /** Override for pages with no counterpart in the other language (e.g. 404). */
+  langHref?: string;
+}
+
+const {
+  lang,
+  title,
+  description = t(profile.tagline, lang),
+  ogImage,
+  transparentHeader = false,
+  langHref,
+} = Astro.props;
+
+const ui = useTranslations(lang);
+
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const sharedPath = stripLocale(Astro.url.pathname);
+const alternates: { hreflang: string; href: string }[] = [
+  { hreflang: 'en', href: new URL(localePath(sharedPath, 'en'), site.url).href },
+  { hreflang: 'zh-Hant-TW', href: new URL(localePath(sharedPath, 'zh'), site.url).href },
+  { hreflang: 'x-default', href: new URL(localePath(sharedPath, 'en'), site.url).href },
+];
+
+const ogImageUrl = new URL(ogImage ?? '/video/bg-poster.jpg', site.url).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name.en,
+  alternateName: [profile.name.zh, profile.alias],
+  url: site.url,
+  email: `mailto:${site.email}`,
+  jobTitle: 'Media Artist, Music Producer, Creative Coder',
+  sameAs: [
+    'https://www.instagram.com/jin_ng.tw/',
+    'https://www.youtube.com/@jin-ng_tw',
+    'https://open.spotify.com/artist/19xLIDlKwD9dLVkNOCYkFl',
+    'https://soundcloud.com/goutystone',
+    'https://github.com/zoidsroy',
+  ],
+};
+---
+
+<!doctype html>
+<html lang={HTML_LANG[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {
+      alternates.map((alt) => (
+        <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+      ))
+    }
+
+    <link rel="icon" href="/favicon.png" />
+    <meta name="theme-color" content="#08090b" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.brand} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content={lang === 'zh' ? 'zh_TW' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+      is:inline
+    />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">{ui('a11y.skip')}</a>
+
+    <Header lang={lang} transparent={transparentHeader} langHref={langHref} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer lang={lang} />
+  </body>
+</html>
