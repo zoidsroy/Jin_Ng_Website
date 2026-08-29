@@ -99,8 +99,8 @@ export const cv: CvSection[] = [
       },
       {
         year: '2025',
-        en: '《Big Fat Bug》WAY remix album — mastering',
-        zh: '《Big Fat Bug》WAY 混音專輯 — 母帶後期',
+        en: '《Big Fat Bug》WAY remix album — remix artist and mastering engineer',
+        zh: '《Big Fat Bug》WAY 混音合輯 — Remix 創作與母帶後期工程',
       },
       {
         year: '2025',
